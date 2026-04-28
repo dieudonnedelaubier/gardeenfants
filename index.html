@@ -619,6 +619,7 @@ header p {
   <div class="panel" id="p-bilan">
     <div class="metrics" id="bilan-metrics"></div>
     <div id="bilan-hist"></div>
+    <button class="btn-add" id="btn-export" style="margin-top:16px">&#128190; Exporter en Excel (.xlsx)</button>
   </div>
 
   <!-- CONVERSIONS -->
@@ -738,19 +739,27 @@ function chip(u) {
   return '<span class="chip chip-' + u + '">' + (names[u]||'') + '</span>';
 }
 
+function defaultWeek(monday) {
+  return DAYS.map((name, i) => ({
+    name, date: fmt(addD(monday, i)),
+    start: DEFAULTS[i].start,
+    end: DEFAULTS[i].end,
+    active: i < 5,
+    user: 'mona'
+  }));
+}
+
 function initWeek() {
   const k = fmt(curWeek);
+  // Return saved data if exists, otherwise defaults (without saving)
+  return state.weeks[k] || defaultWeek(curWeek);
+}
+
+function persistWeek() {
+  const k = fmt(curWeek);
   if (!state.weeks[k]) {
-    state.weeks[k] = DAYS.map((name, i) => ({
-      name, date: fmt(addD(curWeek, i)),
-      start: DEFAULTS[i].start,
-      end: DEFAULTS[i].end,
-      active: i < 5,
-      user: 'mona'
-    }));
-    save();
+    state.weeks[k] = defaultWeek(curWeek);
   }
-  return state.weeks[k];
 }
 
 function getWT(w) {
@@ -834,9 +843,11 @@ function renderWeek() {
 
   grid.querySelectorAll('input[type="time"]').forEach(inp => {
     inp.addEventListener('change', e => {
+      persistWeek();
+      const d2 = state.weeks[fmt(curWeek)];
       const idx = +e.target.dataset.i, f = e.target.dataset.f;
-      data[idx][f] = e.target.value;
-      data[idx].user = curUser();
+      d2[idx][f] = e.target.value;
+      d2[idx].user = curUser();
       save();
       renderWeek();
     });
@@ -844,9 +855,11 @@ function renderWeek() {
 
   grid.querySelectorAll('.day-toggle').forEach(btn => {
     btn.addEventListener('click', e => {
+      persistWeek();
+      const d2 = state.weeks[fmt(curWeek)];
       const idx = +e.currentTarget.dataset.i;
-      data[idx].active = !data[idx].active;
-      data[idx].user = curUser();
+      d2[idx].active = !d2[idx].active;
+      d2[idx].user = curUser();
       save();
       renderWeek();
     });
@@ -873,10 +886,10 @@ function renderWM(total) {
 function renderBilan() {
   const t = allWT(), s = solde();
   const totalH = t.reduce((a, w) => a + w.total, 0);
-  const n = t.length || 1;
+  const n = t.length;
   document.getElementById('bilan-metrics').innerHTML =
     '<div class="metric"><div class="metric-label">Semaines saisies</div><div class="metric-val">' + n + '</div></div>' +
-    '<div class="metric"><div class="metric-label">Moy. heures/sem.</div><div class="metric-val">' + Math.round(totalH/n*10)/10 + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">Moy. heures/sem.</div><div class="metric-val">' + (n ? Math.round(totalH/n*10)/10 : 0) + 'h</div></div>' +
     '<div class="metric"><div class="metric-label">Solde cumul\u00e9</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>' +
     '<div class="metric"><div class="metric-label">Conversions</div><div class="metric-val">' + state.conversions.length + '</div></div>';
 
@@ -1080,7 +1093,78 @@ document.getElementById('today-week').addEventListener('click', () => { curWeek 
 document.getElementById('add-conv').addEventListener('click', () => { resetConvModal(); openModal('conv'); });
 document.getElementById('add-conge').addEventListener('click', () => { resetCongeModal(); openModal('conge'); });
 
+// --- EXPORT XLSX ---
+document.getElementById('btn-export').addEventListener('click', exportXlsx);
+
+function exportXlsx() {
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload = doExport;
+  document.head.appendChild(script);
+}
+
+function doExport() {
+  const wb = XLSX.utils.book_new();
+
+  // 1. Onglet Semaines
+  const weeks = allWT();
+  const wsData = [['Semaine','Date début','Heures réelles','Contrat','Écart']];
+  weeks.forEach(w => {
+    wsData.push(['S' + w.wn, w.date, w.total, CONTRACT, w.ecart]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(wsData);
+  ws1['!cols'] = [{wch:10},{wch:12},{wch:14},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Bilan hebdo');
+
+  // 2. Onglet Détail quotidien
+  const detData = [['Semaine','Jour','Date','Début','Fin','Heures','Actif','Saisi par']];
+  Object.keys(state.weeks).sort().filter(k => k >= CONTRACT_START).forEach(k => {
+    const w = wn(new Date(k));
+    state.weeks[k].forEach(d => {
+      const h = d.active ? dh(d.start, d.end) : 0;
+      detData.push(['S'+w, d.name, d.date, d.start, d.end, h, d.active?'Oui':'Non', d.user||'']);
+    });
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(detData);
+  ws2['!cols'] = [{wch:8},{wch:10},{wch:12},{wch:8},{wch:8},{wch:8},{wch:6},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Détail quotidien');
+
+  // 3. Onglet Conversions
+  const convData = [['Type','Date','Heures','Note']];
+  const labels = {we:'WE complet',semaine:'Semaine complète',babysitting:'Babysitting'};
+  state.conversions.forEach(c => {
+    convData.push([labels[c.type]||c.type, c.date, c.hours, c.note||'']);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(convData);
+  ws3['!cols'] = [{wch:18},{wch:12},{wch:10},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Conversions');
+
+  // 4. Onglet Congés
+  const congeData = [['Période','Début','Fin','Jours ouvrés']];
+  state.conges.forEach(c => {
+    congeData.push([c.nom, c.debut, c.fin, c.jours]);
+  });
+  const ws4 = XLSX.utils.aoa_to_sheet(congeData);
+  ws4['!cols'] = [{wch:22},{wch:12},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws4, 'Congés');
+
+  // Télécharger
+  XLSX.writeFile(wb, 'Suivi_garde_monstres_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
 // --- INIT ---
+// Purge phantom weeks (created by navigation before fix)
+(function cleanPhantomWeeks() {
+  const defaults = defaultWeek(new Date(2027, 0, 5));
+  const defStr = JSON.stringify(defaults.map(d => ({s:d.start, e:d.end, a:d.active})));
+  Object.keys(state.weeks).forEach(k => {
+    const w = state.weeks[k];
+    const wStr = JSON.stringify(w.map(d => ({s:d.start, e:d.end, a:d.active})));
+    if (wStr === defStr) delete state.weeks[k];
+  });
+  save();
+})();
+
 renderWeek();
 </script>
 </body>
