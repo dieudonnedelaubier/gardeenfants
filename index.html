@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi heures Mona 2026-2027</title>
+<style>
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-alt: #f0efed;
+  --text: #1a1a1a;
+  --text-2: #6b6b6b;
+  --text-3: #9b9b9b;
+  --border: #e5e4e1;
+  --border-hover: #d0cfcc;
+  --accent: #5b4fc4;
+  --accent-light: #eeedfe;
+  --accent-text: #3c3489;
+  --green: #1a9e6f;
+  --green-bg: #e6f5ee;
+  --green-text: #0a5e42;
+  --amber: #b87515;
+  --amber-bg: #fef3d6;
+  --amber-text: #7a4e0e;
+  --red: #d94040;
+  --red-bg: #fdeaea;
+  --red-text: #8b2020;
+  --blue-bg: #e8f1fb;
+  --blue-text: #1a5a94;
+  --pink-bg: #fbeaf0;
+  --pink-text: #8a2048;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --shadow: 0 2px 8px rgba(0,0,0,.08);
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+header {
+  text-align: center;
+  padding: 32px 0 28px;
+}
+header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+header p {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+
+/* --- Tabs --- */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  padding: 4px;
+  margin-bottom: 24px;
+}
+.tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--text-2);
+  border-radius: var(--radius);
+  transition: all .2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(91,79,196,.3);
+}
+
+/* --- Panels --- */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* --- Metrics --- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+}
+.metric-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+.metric-val {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.metric-val.ok { color: var(--green); }
+.metric-val.warn { color: var(--amber); }
+
+/* --- User bar --- */
+.user-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.user-bar label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.user-bar select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font);
+  background: var(--surface-alt);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* --- User chips --- */
+.chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.2px;
+}
+.chip-mona { background: var(--green-bg); color: var(--green-text); }
+.chip-clarisse { background: var(--accent-light); color: var(--accent-text); }
+.chip-dieudonne { background: var(--blue-bg); color: var(--blue-text); }
+
+/* --- Week nav --- */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.week-nav button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font);
+  font-weight: 500;
+  color: var(--text);
+  transition: all .15s;
+}
+.week-nav button:hover {
+  background: var(--surface-alt);
+  border-color: var(--border-hover);
+}
+.week-label {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* --- Day grid --- */
+.day-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.day-row {
+  display: grid;
+  grid-template-columns: 85px 1fr 1fr 55px 60px 36px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color .15s;
+}
+.day-row:hover { border-color: var(--border-hover); }
+.day-row.off { opacity: .35; }
+.day-row.wed { border-left: 3px solid var(--green); }
+.day-row.fri { border-left: 3px solid var(--accent); }
+.day-info { cursor: pointer; }
+.day-info:hover .day-name { color: var(--accent); }
+.day-name { font-size: 14px; font-weight: 600; transition: color .15s; }
+.day-date { font-size: 11px; color: var(--text-3); }
+.day-row input[type="time"] {
+  font-size: 14px;
+  font-family: var(--font);
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+  transition: border-color .15s;
+}
+.day-row input[type="time"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(91,79,196,.12);
+}
+.day-row input:disabled { opacity: .3; }
+.day-hours { font-size: 15px; font-weight: 700; text-align: center; }
+.day-toggle {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--text-3);
+  transition: all .15s;
+}
+.day-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.day-toggle.on { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+/* --- Week total --- */
+.week-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  margin-top: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.week-total-label { font-size: 14px; font-weight: 500; color: var(--text-2); }
+.week-total-val { font-size: 20px; font-weight: 700; }
+
+/* --- History table --- */
+.hist-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.hist-table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 12px 16px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+.hist-table th:not(:first-child) { text-align: right; }
+.hist-table td {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.hist-table td:not(:first-child) { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hist-table tr:last-child td { border-bottom: none; }
+
+/* --- Cards list --- */
+.card-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.card {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color .15s;
+}
+.card:hover { border-color: var(--border-hover); }
+.card-title { font-size: 14px; font-weight: 600; }
+.card-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.card-val { font-size: 16px; font-weight: 700; color: var(--accent); }
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+.badge-planned { background: var(--blue-bg); color: var(--blue-text); }
+.badge-done { background: var(--green-bg); color: var(--green-text); }
+.badge-cancelled { background: var(--red-bg); color: var(--red-text); }
+.btn-edit {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  color: var(--text-2);
+  font-family: var(--font);
+  transition: all .15s;
+}
+.btn-edit:hover { background: var(--surface-alt); color: var(--text); border-color: var(--border-hover); }
+
+/* --- Add button --- */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  margin-top: 16px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--text-2);
+  transition: all .15s;
+}
+.btn-add:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+/* --- Congé progress --- */
+.progress-wrap { margin: 16px 0 8px; }
+.progress-header { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
+.progress-bar { height: 10px; border-radius: 5px; background: var(--surface-alt); border: 1px solid var(--border); overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--green), #2bc48a); transition: width .4s ease; }
+
+/* --- Empty state --- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+/* --- Modal --- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  animation: modalIn .2s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.modal h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.modal label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  margin: 14px 0 5px;
+}
+.modal label:first-of-type { margin-top: 0; }
+.modal input, .modal select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color .15s;
+}
+.modal input:focus, .modal select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(91,79,196,.12);
+}
+.modal-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.modal-btns button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: all .15s;
+}
+.modal-btns button:hover { background: var(--surface-alt); }
+.modal-btns .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.modal-btns .primary:hover { background: #4e43b0; }
+.modal-btns .danger { background: none; color: var(--red); border-color: var(--red); }
+.modal-btns .danger:hover { background: var(--red-bg); }
+
+@media (max-width: 600px) {
+  .container { padding: 16px 12px 40px; }
+  header { padding: 20px 0; }
+  header h1 { font-size: 18px; }
+  .day-row { grid-template-columns: 70px 1fr 1fr 45px 50px 30px; gap: 4px; padding: 8px 10px; }
+  .day-name { font-size: 12px; }
+  .day-row input[type="time"] { font-size: 12px; padding: 4px 4px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .card { grid-template-columns: 1fr auto; }
+  .card .card-val, .card .btn-edit { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Suivi heures Mona</h1>
+    <p>22h/semaine &middot; 10,50 &euro; net/h &middot; 6 semaines de cong&eacute;s &middot; D&egrave;s septembre 2026</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="saisie">Semaine</button>
+    <button class="tab" data-tab="bilan">Bilan</button>
+    <button class="tab" data-tab="conversions">Conversions</button>
+    <button class="tab" data-tab="conges">Cong&eacute;s</button>
+  </div>
+
+  <!-- SAISIE -->
+  <div class="panel active" id="p-saisie">
+    <div class="metrics" id="week-metrics"></div>
+    <div class="user-bar">
+      <label>Saisi par</label>
+      <select id="current-user">
+        <option value="mona">Mona</option>
+        <option value="clarisse">Clarisse</option>
+        <option value="dieudonne">Dieudonn&eacute;</option>
+      </select>
+    </div>
+    <div class="week-nav">
+      <button id="prev-week">&larr; Pr&eacute;c&eacute;dente</button>
+      <span class="week-label" id="week-label"></span>
+      <button id="next-week">Suivante &rarr;</button>
+    </div>
+    <div class="day-grid" id="day-grid"></div>
+    <div class="week-total">
+      <span class="week-total-label">Total semaine</span>
+      <span class="week-total-val" id="week-total">0h</span>
+    </div>
+  </div>
+
+  <!-- BILAN -->
+  <div class="panel" id="p-bilan">
+    <div class="metrics" id="bilan-metrics"></div>
+    <div id="bilan-hist"></div>
+  </div>
+
+  <!-- CONVERSIONS -->
+  <div class="panel" id="p-conversions">
+    <div class="metrics" id="conv-metrics"></div>
+    <div class="card-list" id="conv-list"></div>
+    <button class="btn-add" id="add-conv">+ Ajouter une conversion</button>
+  </div>
+
+  <!-- CONGES -->
+  <div class="panel" id="p-conges">
+    <div class="metrics" id="conge-metrics"></div>
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span>Cong&eacute;s pos&eacute;s</span>
+        <span id="conge-count">0 / 6 semaines</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="conge-fill" style="width:0%"></div></div>
+    </div>
+    <div class="card-list" id="conge-grid"></div>
+    <button class="btn-add" id="add-conge">+ Ajouter un cong&eacute;</button>
+  </div>
+</div>
+
+<!-- MODAL: Edit day -->
+<div class="modal-overlay" id="modal-edit-day">
+  <div class="modal">
+    <h3 id="edit-day-title">Modifier la saisie</h3>
+    <label>Heure d'arriv&eacute;e</label>
+    <input type="time" id="edit-start">
+    <label>Heure de d&eacute;part</label>
+    <input type="time" id="edit-end">
+    <label>Travaill&eacute; ce jour</label>
+    <select id="edit-active">
+      <option value="1">Oui</option>
+      <option value="0">Non (absence / cong&eacute;)</option>
+    </select>
+    <label>Saisi par</label>
+    <select id="edit-user">
+      <option value="mona">Mona</option>
+      <option value="clarisse">Clarisse</option>
+      <option value="dieudonne">Dieudonn&eacute;</option>
+    </select>
+    <div class="modal-btns">
+      <button onclick="closeModal('edit-day')">Annuler</button>
+      <button class="primary" onclick="saveEditDay()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Conversion -->
+<div class="modal-overlay" id="modal-conv">
+  <div class="modal">
+    <h3 id="conv-modal-title">Nouvelle conversion</h3>
+    <label>Type</label>
+    <select id="conv-type" onchange="toggleBabyH()">
+      <option value="we">WE complet (22h) &mdash; ven 18h &rarr; dim 18h</option>
+      <option value="semaine">Semaine compl&egrave;te (44h) &mdash; lun-ven 8h30-19h</option>
+      <option value="babysitting">Babysitting (heures r&eacute;elles)</option>
+    </select>
+    <div id="baby-hours-wrap" style="display:none">
+      <label>Nombre d'heures r&eacute;elles</label>
+      <input type="number" id="conv-baby-hours" min="0.5" step="0.5" value="6" placeholder="Ex: 6">
+    </div>
+    <label>Date</label>
+    <input type="date" id="conv-date">
+    <label>Note (optionnel)</label>
+    <input type="text" id="conv-note" placeholder="Ex: soir&eacute;e chez amis">
+    <label>Statut</label>
+    <select id="conv-statut">
+      <option value="planned">Planifi&eacute;</option>
+      <option value="done">R&eacute;alis&eacute;</option>
+    </select>
+    <div class="modal-btns" id="conv-modal-btns">
+      <button onclick="closeModal('conv')">Annuler</button>
+      <button class="primary" onclick="saveConv()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Congé -->
+<div class="modal-overlay" id="modal-conge">
+  <div class="modal">
+    <h3 id="conge-modal-title">Nouveau cong&eacute;</h3>
+    <label>P&eacute;riode</label>
+    <input type="text" id="conge-nom" placeholder="Ex: Vacances de No&euml;l">
+    <label>Date d&eacute;but</label>
+    <input type="date" id="conge-debut">
+    <label>Date fin</label>
+    <input type="date" id="conge-fin">
+    <label>Nb jours ouvr&eacute;s</label>
+    <input type="number" id="conge-jours" value="5" min="1" max="15">
+    <div class="modal-btns" id="conge-modal-btns">
+      <button onclick="closeModal('conge')">Annuler</button>
+      <button class="primary" onclick="saveConge()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const CONTRACT = 22;
+const DEFAULTS = {
+  0: { start:'16:30', end:'19:00' },
+  1: { start:'16:30', end:'19:00' },
+  2: { start:'08:30', end:'18:30' },
+  3: { start:'16:30', end:'19:00' },
+  4: { start:'16:30', end:'18:30' },
+  5: { start:'', end:'' },
+  6: { start:'', end:'' }
+};
+
+const LS_KEY = 'mona_suivi_v2';
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { weeks: {}, conversions: [], conges: [] };
+}
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+let curWeek = getMonday(new Date());
+let editDayIdx = -1, editConvIdx = -1, editCongeIdx = -1;
+
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = dt.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(dt.getFullYear(), dt.getMonth(), diff);
+}
+function fmt(d) { return d.toISOString().slice(0,10); }
+function addD(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function pt(t) { if (!t) return 0; const [h,m] = t.split(':').map(Number); return h + m/60; }
+function dh(s, e) { const d = pt(e) - pt(s); return d < 0 ? 0 : Math.round(d * 10) / 10; }
+function wn(d) {
+  const o = new Date(d); o.setHours(0,0,0,0);
+  o.setDate(o.getDate() + 3 - (o.getDay() + 6) % 7);
+  const y = new Date(o.getFullYear(), 0, 4);
+  return 1 + Math.round(((o - y) / 864e5 - (3 - (y.getDay() + 6) % 7)) / 7);
+}
+function curUser() { return document.getElementById('current-user').value; }
+
+function chip(u) {
+  const names = { mona:'Mona', clarisse:'Clarisse', dieudonne:'Dieudonné' };
+  return '<span class="chip chip-' + u + '">' + (names[u]||'') + '</span>';
+}
+
+function initWeek() {
+  const k = fmt(curWeek);
+  if (!state.weeks[k]) {
+    state.weeks[k] = DAYS.map((name, i) => ({
+      name, date: fmt(addD(curWeek, i)),
+      start: DEFAULTS[i].start,
+      end: DEFAULTS[i].end,
+      active: i < 5,
+      user: 'mona'
+    }));
+    save();
+  }
+  return state.weeks[k];
+}
+
+function getWT(w) {
+  const d = state.weeks[fmt(w)];
+  if (!d) return 0;
+  return Math.round(d.reduce((s, x) => s + (x.active ? dh(x.start, x.end) : 0), 0) * 10) / 10;
+}
+
+function allWT() {
+  return Object.keys(state.weeks).sort().map(k => {
+    const d = new Date(k), total = getWT(d);
+    return { date: k, wn: wn(d), total, ecart: Math.round((total - CONTRACT) * 10) / 10 };
+  });
+}
+
+function solde() {
+  const surplus = allWT().reduce((s, w) => s + Math.max(0, CONTRACT - w.total), 0);
+  const consumed = state.conversions.filter(c => c.status !== 'cancelled').reduce((s, c) => s + c.hours, 0);
+  return Math.round((surplus - consumed) * 10) / 10;
+}
+
+// --- RENDER WEEK ---
+function renderWeek() {
+  const data = initWeek();
+  const w = wn(curWeek);
+  const mo = curWeek.toLocaleDateString('fr-FR', { month: 'long' });
+  document.getElementById('week-label').textContent = 'S' + w + ' \u2014 ' + curWeek.getDate() + ' ' + mo + ' ' + curWeek.getFullYear();
+
+  const grid = document.getElementById('day-grid');
+  grid.innerHTML = '';
+
+  data.forEach((d, i) => {
+    const h = d.active ? dh(d.start, d.end) : 0;
+    const row = document.createElement('div');
+    let cls = 'day-row';
+    if (!d.active) cls += ' off';
+    if (i === 2) cls += ' wed';
+    if (i === 4) cls += ' fri';
+    row.className = cls;
+    row.innerHTML =
+      '<div class="day-info" data-i="' + i + '">' +
+        '<div class="day-name">' + d.name + '</div>' +
+        '<div class="day-date">' + new Date(d.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + '</div>' +
+      '</div>' +
+      '<input type="time" value="' + d.start + '"' + (d.active?'':' disabled') + ' data-i="' + i + '" data-f="start">' +
+      '<input type="time" value="' + d.end + '"' + (d.active?'':' disabled') + ' data-i="' + i + '" data-f="end">' +
+      '<div class="day-hours">' + (h > 0 ? h + 'h' : '\u2013') + '</div>' +
+      '<div style="text-align:center">' + (d.user ? chip(d.user) : '') + '</div>' +
+      '<button class="day-toggle' + (d.active?' on':'') + '" data-i="' + i + '">' + (d.active?'\u2713':'\u2715') + '</button>';
+    grid.appendChild(row);
+  });
+
+  grid.querySelectorAll('.day-info').forEach(el => {
+    el.addEventListener('click', () => openEditDay(+el.dataset.i));
+  });
+
+  grid.querySelectorAll('input[type="time"]').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const idx = +e.target.dataset.i, f = e.target.dataset.f;
+      data[idx][f] = e.target.value;
+      data[idx].user = curUser();
+      save();
+      renderWeek();
+    });
+  });
+
+  grid.querySelectorAll('.day-toggle').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = +e.currentTarget.dataset.i;
+      data[idx].active = !data[idx].active;
+      data[idx].user = curUser();
+      save();
+      renderWeek();
+    });
+  });
+
+  const total = Math.round(data.reduce((s, d) => s + (d.active ? dh(d.start, d.end) : 0), 0) * 10) / 10;
+  const el = document.getElementById('week-total');
+  el.textContent = total + 'h / ' + CONTRACT + 'h';
+  el.className = 'week-total-val' + (total >= CONTRACT ? ' ok' : ' warn');
+  renderWM(total);
+}
+
+function renderWM(total) {
+  const ec = Math.round((total - CONTRACT) * 10) / 10;
+  const s = solde();
+  document.getElementById('week-metrics').innerHTML =
+    '<div class="metric"><div class="metric-label">Cette semaine</div><div class="metric-val ' + (total>=CONTRACT?'ok':'warn') + '">' + total + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">Contrat</div><div class="metric-val">' + CONTRACT + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">\u00c9cart</div><div class="metric-val ' + (ec>=0?'ok':'warn') + '">' + (ec>0?'+':'') + ec + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">Solde \u00e0 transformer</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>';
+}
+
+// --- EDIT DAY MODAL ---
+function openEditDay(i) {
+  const data = initWeek();
+  const d = data[i];
+  editDayIdx = i;
+  document.getElementById('edit-day-title').textContent = 'Modifier \u2014 ' + d.name + ' ' + new Date(d.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  document.getElementById('edit-start').value = d.start;
+  document.getElementById('edit-end').value = d.end;
+  document.getElementById('edit-active').value = d.active ? '1' : '0';
+  document.getElementById('edit-user').value = d.user || 'mona';
+  openModal('edit-day');
+}
+
+function saveEditDay() {
+  const data = initWeek();
+  const d = data[editDayIdx];
+  d.start = document.getElementById('edit-start').value;
+  d.end = document.getElementById('edit-end').value;
+  d.active = document.getElementById('edit-active').value === '1';
+  d.user = document.getElementById('edit-user').value;
+  save();
+  closeModal('edit-day');
+  renderWeek();
+}
+
+// --- BILAN ---
+function renderBilan() {
+  const t = allWT(), s = solde();
+  const totalH = t.reduce((a, w) => a + w.total, 0);
+  const n = t.length || 1;
+  document.getElementById('bilan-metrics').innerHTML =
+    '<div class="metric"><div class="metric-label">Semaines saisies</div><div class="metric-val">' + n + '</div></div>' +
+    '<div class="metric"><div class="metric-label">Moy. heures/sem.</div><div class="metric-val">' + Math.round(totalH/n*10)/10 + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">Solde cumul\u00e9</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">Conversions r\u00e9alis\u00e9es</div><div class="metric-val">' + state.conversions.filter(c=>c.status==='done').length + '</div></div>';
+
+  const hist = document.getElementById('bilan-hist');
+  if (!t.length) { hist.innerHTML = '<div class="empty-state">Aucune semaine saisie</div>'; return; }
+  let html = '<table class="hist-table"><thead><tr><th>Semaine</th><th>R\u00e9el</th><th>Contrat</th><th>\u00c9cart</th></tr></thead><tbody>';
+  t.slice().reverse().forEach(w => {
+    const col = w.ecart >= 0 ? 'var(--green)' : 'var(--amber)';
+    html += '<tr><td>S' + w.wn + '</td><td>' + w.total + 'h</td><td>' + CONTRACT + 'h</td><td style="color:' + col + '">' + (w.ecart>0?'+':'') + w.ecart + 'h</td></tr>';
+  });
+  html += '</tbody></table>';
+  hist.innerHTML = html;
+}
+
+// --- CONVERSIONS ---
+function toggleBabyH() {
+  document.getElementById('baby-hours-wrap').style.display = document.getElementById('conv-type').value === 'babysitting' ? 'block' : 'none';
+}
+
+function renderConv() {
+  const s = solde();
+  const weC = state.conversions.filter(c => c.type==='we' && c.status!=='cancelled').length;
+  const semC = state.conversions.filter(c => c.type==='semaine' && c.status!=='cancelled').length;
+  const babyH = state.conversions.filter(c => c.type==='babysitting' && c.status!=='cancelled').reduce((a,c) => a+c.hours, 0);
+  document.getElementById('conv-metrics').innerHTML =
+    '<div class="metric"><div class="metric-label">Solde disponible</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>' +
+    '<div class="metric"><div class="metric-label">WE utilis\u00e9s</div><div class="metric-val">' + weC + ' / 4</div></div>' +
+    '<div class="metric"><div class="metric-label">Semaines utilis\u00e9es</div><div class="metric-val">' + semC + ' / 3</div></div>' +
+    '<div class="metric"><div class="metric-label">Babysitting cumul\u00e9</div><div class="metric-val">' + babyH + 'h</div></div>';
+
+  const list = document.getElementById('conv-list');
+  list.innerHTML = '';
+  if (!state.conversions.length) { list.innerHTML = '<div class="empty-state">Aucune conversion pour le moment</div>'; return; }
+  const labels = { we:'WE complet', semaine:'Semaine compl\u00e8te', babysitting:'Babysitting' };
+  state.conversions.forEach((c, i) => {
+    const det = c.type==='babysitting' ? c.hours+'h r\u00e9elles' + (c.note?' \u2014 '+c.note:'') :
+                c.type==='we' ? 'Ven 18h \u2192 Dim 18h' + (c.note?' \u2014 '+c.note:'') :
+                'Lun-Ven 8h30-19h' + (c.note?' \u2014 '+c.note:'');
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div><div class="card-title">' + labels[c.type] + '</div><div class="card-sub">' + new Date(c.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) + ' \u2014 ' + det + '</div></div>' +
+      '<div class="card-val">' + c.hours + 'h</div>' +
+      '<div class="badge badge-' + c.status + '">' + (c.status==='planned'?'Planifi\u00e9':'R\u00e9alis\u00e9') + '</div>' +
+      '<button class="btn-edit" onclick="editConv(' + i + ')">Modifier</button>';
+    list.appendChild(card);
+  });
+}
+
+function editConv(i) {
+  editConvIdx = i;
+  const c = state.conversions[i];
+  document.getElementById('conv-modal-title').textContent = 'Modifier la conversion';
+  document.getElementById('conv-type').value = c.type;
+  toggleBabyH();
+  if (c.type==='babysitting') document.getElementById('conv-baby-hours').value = c.hours;
+  document.getElementById('conv-date').value = c.date;
+  document.getElementById('conv-note').value = c.note || '';
+  document.getElementById('conv-statut').value = c.status;
+  document.getElementById('conv-modal-btns').innerHTML =
+    '<button class="danger" onclick="deleteConv()">Supprimer</button>' +
+    '<button onclick="closeModal(\'conv\')">Annuler</button>' +
+    '<button class="primary" onclick="saveConv()">Enregistrer</button>';
+  openModal('conv');
+}
+
+function deleteConv() {
+  state.conversions.splice(editConvIdx, 1);
+  editConvIdx = -1;
+  save();
+  closeModal('conv');
+  renderConv();
+}
+
+function saveConv() {
+  const type = document.getElementById('conv-type').value;
+  const date = document.getElementById('conv-date').value;
+  const note = document.getElementById('conv-note').value;
+  const status = document.getElementById('conv-statut').value;
+  const hours = type==='semaine' ? 44 : type==='we' ? 22 : parseFloat(document.getElementById('conv-baby-hours').value) || 0;
+  if (!date) { alert('Choisir une date'); return; }
+  if (type==='babysitting' && hours<=0) { alert('Indiquer les heures r\u00e9elles'); return; }
+  const obj = { type, date, note, status, hours };
+  if (editConvIdx >= 0) { state.conversions[editConvIdx] = obj; editConvIdx = -1; }
+  else { state.conversions.push(obj); }
+  save();
+  closeModal('conv');
+  renderConv();
+}
+
+function resetConvModal() {
+  editConvIdx = -1;
+  document.getElementById('conv-modal-title').textContent = 'Nouvelle conversion';
+  document.getElementById('conv-type').value = 'we';
+  toggleBabyH();
+  document.getElementById('conv-date').value = '';
+  document.getElementById('conv-note').value = '';
+  document.getElementById('conv-statut').value = 'planned';
+  document.getElementById('conv-modal-btns').innerHTML =
+    '<button onclick="closeModal(\'conv\')">Annuler</button>' +
+    '<button class="primary" onclick="saveConv()">Ajouter</button>';
+}
+
+// --- CONGES ---
+function renderConges() {
+  const tj = state.conges.reduce((s, c) => s + c.jours, 0);
+  const ts = Math.round(tj / 5 * 10) / 10;
+  const pct = Math.min(100, Math.round(ts / 6 * 100));
+  document.getElementById('conge-metrics').innerHTML =
+    '<div class="metric"><div class="metric-label">Jours pos\u00e9s</div><div class="metric-val">' + tj + 'j</div></div>' +
+    '<div class="metric"><div class="metric-label">Semaines pos\u00e9es</div><div class="metric-val">' + ts + ' / 6</div></div>' +
+    '<div class="metric"><div class="metric-label">Restant</div><div class="metric-val ok">' + Math.round((6-ts)*10)/10 + ' sem.</div></div>';
+  document.getElementById('conge-count').textContent = ts + ' / 6 semaines';
+  document.getElementById('conge-fill').style.width = pct + '%';
+
+  const grid = document.getElementById('conge-grid');
+  grid.innerHTML = '';
+  if (!state.conges.length) { grid.innerHTML = '<div class="empty-state">Aucun cong\u00e9 pos\u00e9</div>'; return; }
+  state.conges.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'card';
+    row.innerHTML =
+      '<div><div class="card-title">' + c.nom + '</div><div class="card-sub">' + new Date(c.debut).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ' \u2192 ' + new Date(c.fin).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) + '</div></div>' +
+      '<div class="card-val" style="color:var(--green)">' + c.jours + 'j</div>' +
+      '<div class="badge badge-done">Pos\u00e9</div>' +
+      '<button class="btn-edit" onclick="editConge(' + i + ')">Modifier</button>';
+    grid.appendChild(row);
+  });
+}
+
+function editConge(i) {
+  editCongeIdx = i;
+  const c = state.conges[i];
+  document.getElementById('conge-modal-title').textContent = 'Modifier le cong\u00e9';
+  document.getElementById('conge-nom').value = c.nom;
+  document.getElementById('conge-debut').value = c.debut;
+  document.getElementById('conge-fin').value = c.fin;
+  document.getElementById('conge-jours').value = c.jours;
+  document.getElementById('conge-modal-btns').innerHTML =
+    '<button class="danger" onclick="deleteConge()">Supprimer</button>' +
+    '<button onclick="closeModal(\'conge\')">Annuler</button>' +
+    '<button class="primary" onclick="saveConge()">Enregistrer</button>';
+  openModal('conge');
+}
+
+function deleteConge() {
+  state.conges.splice(editCongeIdx, 1);
+  editCongeIdx = -1;
+  save();
+  closeModal('conge');
+  renderConges();
+}
+
+function saveConge() {
+  const nom = document.getElementById('conge-nom').value;
+  const debut = document.getElementById('conge-debut').value;
+  const fin = document.getElementById('conge-fin').value;
+  const jours = +document.getElementById('conge-jours').value;
+  if (!nom || !debut || !fin) { alert('Remplir tous les champs'); return; }
+  const obj = { nom, debut, fin, jours };
+  if (editCongeIdx >= 0) { state.conges[editCongeIdx] = obj; editCongeIdx = -1; }
+  else { state.conges.push(obj); }
+  save();
+  closeModal('conge');
+  renderConges();
+}
+
+function resetCongeModal() {
+  editCongeIdx = -1;
+  document.getElementById('conge-modal-title').textContent = 'Nouveau cong\u00e9';
+  document.getElementById('conge-nom').value = '';
+  document.getElementById('conge-debut').value = '';
+  document.getElementById('conge-fin').value = '';
+  document.getElementById('conge-jours').value = '5';
+  document.getElementById('conge-modal-btns').innerHTML =
+    '<button onclick="closeModal(\'conge\')">Annuler</button>' +
+    '<button class="primary" onclick="saveConge()">Ajouter</button>';
+}
+
+// --- MODALS ---
+function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
+function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// --- TABS ---
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('p-' + t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'bilan') renderBilan();
+    if (t.dataset.tab === 'conversions') renderConv();
+    if (t.dataset.tab === 'conges') renderConges();
+  });
+});
+
+// --- NAV ---
+document.getElementById('prev-week').addEventListener('click', () => { curWeek = addD(curWeek, -7); renderWeek(); });
+document.getElementById('next-week').addEventListener('click', () => { curWeek = addD(curWeek, 7); renderWeek(); });
+document.getElementById('add-conv').addEventListener('click', () => { resetConvModal(); openModal('conv'); });
+document.getElementById('add-conge').addEventListener('click', () => { resetCongeModal(); openModal('conge'); });
+
+// --- INIT ---
+renderWeek();
+</script>
+</body>
+</html>
