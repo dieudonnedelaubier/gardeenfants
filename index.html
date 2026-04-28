@@ -194,6 +194,13 @@ header p {
   background: var(--surface-alt);
   border-color: var(--border-hover);
 }
+#today-week {
+  background: var(--accent-light);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+#today-week:hover { background: var(--accent); color: #fff; }
 .week-label {
   font-size: 16px;
   font-weight: 600;
@@ -208,7 +215,7 @@ header p {
 .day-row {
   display: grid;
   grid-template-columns: 85px 1fr 1fr 55px 60px 36px;
-  gap: 8px;
+  gap: 8px 12px;
   align-items: center;
   padding: 10px 14px;
   background: var(--surface);
@@ -255,6 +262,17 @@ header p {
 }
 .day-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .day-toggle.on { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+/* Weekend rows: compact */
+.day-row.weekend {
+  padding: 6px 14px;
+  opacity: .4;
+  background: var(--surface-alt);
+}
+.day-row.weekend .day-name { font-size: 12px; }
+.day-row.weekend input[type="time"] { font-size: 12px; padding: 4px 6px; }
+.day-row.weekend .day-hours { font-size: 13px; }
+.day-row.weekend .day-toggle { width: 24px; height: 24px; font-size: 12px; }
 
 /* --- Week total --- */
 .week-total {
@@ -516,9 +534,16 @@ header p {
   .tab { font-size: 13px; padding: 8px 12px; }
 
   /* Week nav */
-  .week-nav { gap: 6px; flex-wrap: wrap; justify-content: center; }
-  .week-nav button { font-size: 13px; padding: 8px 14px; min-height: 40px; }
-  .week-label { font-size: 14px; min-width: 140px; text-align: center; }
+  .week-nav { gap: 4px; flex-wrap: nowrap; justify-content: space-between; }
+  .week-nav button { font-size: 12px; padding: 6px 10px; min-height: 36px; }
+  #today-week { padding: 6px 8px; font-size: 11px; }
+  .week-label { font-size: 13px; min-width: 0; text-align: center; flex: 1; }
+
+  /* Weekend compact on mobile */
+  .day-row.weekend { padding: 6px 12px; }
+  .day-row.weekend .day-info { padding-bottom: 2px; border-bottom: none; margin-bottom: 0; }
+  .day-row.weekend input[type="time"] { min-height: 32px; font-size: 13px; padding: 4px 4px; }
+  .day-row.weekend .day-toggle { width: 28px; height: 28px; font-size: 13px; }
 
   /* Modals */
   .modal { width: 95vw; max-width: none; padding: 20px 16px; }
@@ -566,9 +591,10 @@ header p {
       </select>
     </div>
     <div class="week-nav">
-      <button id="prev-week">&larr; Pr&eacute;c&eacute;dente</button>
+      <button id="prev-week">&larr; Pr&eacute;c.</button>
+      <button id="today-week">Aujourd'hui</button>
       <span class="week-label" id="week-label"></span>
-      <button id="next-week">Suivante &rarr;</button>
+      <button id="next-week">Suiv. &rarr;</button>
     </div>
     <div class="day-grid" id="day-grid"></div>
     <div class="week-total">
@@ -681,7 +707,7 @@ header p {
 </div>
 
 <script>
-const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Sam.','Dim.'];
 const CONTRACT = 22;
 const DEFAULTS = {
   0: { start:'16:30', end:'19:00' },
@@ -705,7 +731,7 @@ function loadState() {
 }
 function save() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
-let curWeek = getMonday(new Date(2027, 0, 3));
+let curWeek = new Date(2027, 0, 5); // S2 2027 = lundi 5 janvier
 let editDayIdx = -1, editConvIdx = -1, editCongeIdx = -1;
 
 function getMonday(d) {
@@ -760,7 +786,13 @@ function allWT() {
 }
 
 function solde() {
-  const surplus = allWT().reduce((s, w) => s + Math.max(0, CONTRACT - w.total), 0);
+  // Only count completed weeks (Sunday is past) — independent of viewed week
+  const today = new Date();
+  today.setHours(23,59,59,999);
+  const surplus = allWT().filter(w => {
+    const sunday = addD(new Date(w.date), 6);
+    return sunday <= today;
+  }).reduce((s, w) => s + Math.max(0, CONTRACT - w.total), 0);
   const consumed = state.conversions.filter(c => c.status !== 'cancelled').reduce((s, c) => s + c.hours, 0);
   return Math.round((surplus - consumed) * 10) / 10;
 }
@@ -769,7 +801,7 @@ function solde() {
 function renderWeek() {
   const data = initWeek();
   const w = wn(curWeek);
-  const mo = curWeek.toLocaleDateString('fr-FR', { month: 'long' });
+  const mo = curWeek.toLocaleDateString('fr-FR', { month: 'short' }).replace('.','');
   document.getElementById('week-label').textContent = 'S' + w + ' \u2014 ' + curWeek.getDate() + ' ' + mo + ' ' + curWeek.getFullYear();
 
   const grid = document.getElementById('day-grid');
@@ -782,6 +814,7 @@ function renderWeek() {
     if (!d.active) cls += ' off';
     if (i === 2) cls += ' wed';
     if (i === 4) cls += ' fri';
+    if (i >= 5) cls += ' weekend';
     row.className = cls;
     row.innerHTML =
       '<div class="day-info" data-i="' + i + '">' +
@@ -1073,6 +1106,7 @@ document.querySelectorAll('.tab').forEach(t => {
 // --- NAV ---
 document.getElementById('prev-week').addEventListener('click', () => { curWeek = addD(curWeek, -7); renderWeek(); });
 document.getElementById('next-week').addEventListener('click', () => { curWeek = addD(curWeek, 7); renderWeek(); });
+document.getElementById('today-week').addEventListener('click', () => { curWeek = getMonday(new Date()); renderWeek(); });
 document.getElementById('add-conv').addEventListener('click', () => { resetConvModal(); openModal('conv'); });
 document.getElementById('add-conge').addEventListener('click', () => { resetCongeModal(); openModal('conge'); });
 
