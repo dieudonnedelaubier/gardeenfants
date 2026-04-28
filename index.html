@@ -201,10 +201,21 @@ header p {
   font-weight: 600;
 }
 #today-week:hover { background: var(--accent); color: #fff; }
-.week-label {
-  font-size: 16px;
+.week-select {
+  font-size: 14px;
   font-weight: 600;
+  font-family: var(--font);
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
 }
+.week-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,79,196,.12); }
 
 /* --- Day grid --- */
 .day-grid {
@@ -227,8 +238,7 @@ header p {
 .day-row.off { opacity: .35; }
 .day-row.wed { border-left: 3px solid var(--green); }
 .day-row.fri { border-left: 3px solid var(--accent); }
-.day-info { cursor: pointer; }
-.day-info:hover .day-name { color: var(--accent); }
+.day-info { cursor: default; }
 .day-name { font-size: 14px; font-weight: 600; transition: color .15s; }
 .day-date { font-size: 11px; color: var(--text-3); }
 .day-row input[type="time"] {
@@ -537,7 +547,7 @@ header p {
   .week-nav { gap: 4px; flex-wrap: nowrap; justify-content: space-between; }
   .week-nav button { font-size: 12px; padding: 6px 10px; min-height: 36px; }
   #today-week { padding: 6px 8px; font-size: 11px; }
-  .week-label { font-size: 13px; min-width: 0; text-align: center; flex: 1; }
+  .week-select { font-size: 12px; padding: 6px 4px; }
 
   /* Weekend compact on mobile */
   .day-row.weekend { padding: 6px 12px; }
@@ -593,7 +603,7 @@ header p {
     <div class="week-nav">
       <button id="prev-week">&larr; Pr&eacute;c.</button>
       <button id="today-week">Aujourd'hui</button>
-      <span class="week-label" id="week-label"></span>
+      <select id="week-select" class="week-select"></select>
       <button id="next-week">Suiv. &rarr;</button>
     </div>
     <div class="day-grid" id="day-grid"></div>
@@ -628,32 +638,6 @@ header p {
     </div>
     <div class="card-list" id="conge-grid"></div>
     <button class="btn-add" id="add-conge">+ Ajouter un cong&eacute;</button>
-  </div>
-</div>
-
-<!-- MODAL: Edit day -->
-<div class="modal-overlay" id="modal-edit-day">
-  <div class="modal">
-    <h3 id="edit-day-title">Modifier la saisie</h3>
-    <label>Heure d'arriv&eacute;e</label>
-    <input type="time" id="edit-start">
-    <label>Heure de d&eacute;part</label>
-    <input type="time" id="edit-end">
-    <label>Travaill&eacute; ce jour</label>
-    <select id="edit-active">
-      <option value="1">Oui</option>
-      <option value="0">Non (absence / cong&eacute;)</option>
-    </select>
-    <label>Saisi par</label>
-    <select id="edit-user">
-      <option value="mona">Mona</option>
-      <option value="clarisse">Clarisse</option>
-      <option value="dieudonne">Dieudonn&eacute;</option>
-    </select>
-    <div class="modal-btns">
-      <button onclick="closeModal('edit-day')">Annuler</button>
-      <button class="primary" onclick="saveEditDay()">Enregistrer</button>
-    </div>
   </div>
 </div>
 
@@ -732,7 +716,7 @@ function loadState() {
 function save() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
 let curWeek = new Date(2027, 0, 5); // S2 2027 = lundi 5 janvier
-let editDayIdx = -1, editConvIdx = -1, editCongeIdx = -1;
+let editConvIdx = -1, editCongeIdx = -1;
 
 function getMonday(d) {
   const dt = new Date(d);
@@ -801,8 +785,26 @@ function solde() {
 function renderWeek() {
   const data = initWeek();
   const w = wn(curWeek);
-  const mo = curWeek.toLocaleDateString('fr-FR', { month: 'short' }).replace('.','');
-  document.getElementById('week-label').textContent = 'S' + w + ' \u2014 ' + curWeek.getDate() + ' ' + mo + ' ' + curWeek.getFullYear();
+  // Populate week selector (S1 2027 → S52 2027)
+  const sel = document.getElementById('week-select');
+  const curVal = fmt(curWeek);
+  if (sel.children.length === 0) {
+    const startDate = new Date(2026, 11, 29); // S1 2027 = lun 29 déc 2026
+    for (let i = 0; i < 53; i++) {
+      const monday = addD(startDate, i * 7);
+      const wNum = wn(monday);
+      const mo = monday.toLocaleDateString('fr-FR', { month: 'short' }).replace('.','');
+      const opt = document.createElement('option');
+      opt.value = fmt(monday);
+      opt.textContent = 'S' + wNum + ' \u2014 ' + monday.getDate() + ' ' + mo + ' ' + monday.getFullYear();
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', () => {
+      curWeek = getMonday(new Date(sel.value));
+      renderWeek();
+    });
+  }
+  sel.value = curVal;
 
   const grid = document.getElementById('day-grid');
   grid.innerHTML = '';
@@ -827,10 +829,6 @@ function renderWeek() {
       '<div style="text-align:center">' + (d.user ? chip(d.user) : '') + '</div>' +
       '<button class="day-toggle' + (d.active?' on':'') + '" data-i="' + i + '">' + (d.active?'\u2713':'\u2715') + '</button>';
     grid.appendChild(row);
-  });
-
-  grid.querySelectorAll('.day-info').forEach(el => {
-    el.addEventListener('click', () => openEditDay(+el.dataset.i));
   });
 
   grid.querySelectorAll('input[type="time"]').forEach(inp => {
@@ -868,31 +866,6 @@ function renderWM(total) {
     '<div class="metric"><div class="metric-label">Contrat</div><div class="metric-val">' + CONTRACT + 'h</div></div>' +
     '<div class="metric"><div class="metric-label">\u00c9cart</div><div class="metric-val ' + (ec>=0?'ok':'warn') + '">' + (ec>0?'+':'') + ec + 'h</div></div>' +
     '<div class="metric"><div class="metric-label">Solde \u00e0 transformer</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>';
-}
-
-// --- EDIT DAY MODAL ---
-function openEditDay(i) {
-  const data = initWeek();
-  const d = data[i];
-  editDayIdx = i;
-  document.getElementById('edit-day-title').textContent = 'Modifier \u2014 ' + d.name + ' ' + new Date(d.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-  document.getElementById('edit-start').value = d.start;
-  document.getElementById('edit-end').value = d.end;
-  document.getElementById('edit-active').value = d.active ? '1' : '0';
-  document.getElementById('edit-user').value = d.user || 'mona';
-  openModal('edit-day');
-}
-
-function saveEditDay() {
-  const data = initWeek();
-  const d = data[editDayIdx];
-  d.start = document.getElementById('edit-start').value;
-  d.end = document.getElementById('edit-end').value;
-  d.active = document.getElementById('edit-active').value === '1';
-  d.user = document.getElementById('edit-user').value;
-  save();
-  closeModal('edit-day');
-  renderWeek();
 }
 
 // --- BILAN ---
