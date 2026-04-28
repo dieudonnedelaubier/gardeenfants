@@ -331,7 +331,7 @@ header p {
 .card-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .card {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto;
   gap: 12px;
   align-items: center;
   padding: 14px 18px;
@@ -438,6 +438,8 @@ header p {
 .modal label:first-of-type { margin-top: 0; }
 .modal input, .modal select {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -659,11 +661,6 @@ header p {
     <input type="date" id="conv-date">
     <label>Note (optionnel)</label>
     <input type="text" id="conv-note" placeholder="Ex: soir&eacute;e chez amis">
-    <label>Statut</label>
-    <select id="conv-statut">
-      <option value="planned">Planifi&eacute;</option>
-      <option value="done">R&eacute;alis&eacute;</option>
-    </select>
     <div class="modal-btns" id="conv-modal-btns">
       <button onclick="closeModal('conv')">Annuler</button>
       <button class="primary" onclick="saveConv()">Ajouter</button>
@@ -762,11 +759,15 @@ function getWT(w) {
   return Math.round(d.reduce((s, x) => s + (x.active ? dh(x.start, x.end) : 0), 0) * 10) / 10;
 }
 
+const CONTRACT_START = '2027-01-05'; // S2 2027
+
 function allWT() {
-  return Object.keys(state.weeks).sort().map(k => {
-    const d = new Date(k), total = getWT(d);
-    return { date: k, wn: wn(d), total, ecart: Math.round((total - CONTRACT) * 10) / 10 };
-  });
+  return Object.keys(state.weeks).sort()
+    .filter(k => k >= CONTRACT_START)
+    .map(k => {
+      const d = new Date(k), total = getWT(d);
+      return { date: k, wn: wn(d), total, ecart: Math.round((total - CONTRACT) * 10) / 10 };
+    });
 }
 
 function solde() {
@@ -777,7 +778,7 @@ function solde() {
     const sunday = addD(new Date(w.date), 6);
     return sunday <= today;
   }).reduce((s, w) => s + Math.max(0, CONTRACT - w.total), 0);
-  const consumed = state.conversions.filter(c => c.status !== 'cancelled').reduce((s, c) => s + c.hours, 0);
+  const consumed = state.conversions.reduce((s, c) => s + c.hours, 0);
   return Math.round((surplus - consumed) * 10) / 10;
 }
 
@@ -877,7 +878,7 @@ function renderBilan() {
     '<div class="metric"><div class="metric-label">Semaines saisies</div><div class="metric-val">' + n + '</div></div>' +
     '<div class="metric"><div class="metric-label">Moy. heures/sem.</div><div class="metric-val">' + Math.round(totalH/n*10)/10 + 'h</div></div>' +
     '<div class="metric"><div class="metric-label">Solde cumul\u00e9</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>' +
-    '<div class="metric"><div class="metric-label">Conversions r\u00e9alis\u00e9es</div><div class="metric-val">' + state.conversions.filter(c=>c.status==='done').length + '</div></div>';
+    '<div class="metric"><div class="metric-label">Conversions</div><div class="metric-val">' + state.conversions.length + '</div></div>';
 
   const hist = document.getElementById('bilan-hist');
   if (!t.length) { hist.innerHTML = '<div class="empty-state">Aucune semaine saisie</div>'; return; }
@@ -897,9 +898,9 @@ function toggleBabyH() {
 
 function renderConv() {
   const s = solde();
-  const weC = state.conversions.filter(c => c.type==='we' && c.status!=='cancelled').length;
-  const semC = state.conversions.filter(c => c.type==='semaine' && c.status!=='cancelled').length;
-  const babyH = state.conversions.filter(c => c.type==='babysitting' && c.status!=='cancelled').reduce((a,c) => a+c.hours, 0);
+  const weC = state.conversions.filter(c => c.type==='we').length;
+  const semC = state.conversions.filter(c => c.type==='semaine').length;
+  const babyH = state.conversions.filter(c => c.type==='babysitting').reduce((a,c) => a+c.hours, 0);
   document.getElementById('conv-metrics').innerHTML =
     '<div class="metric"><div class="metric-label">Solde disponible</div><div class="metric-val" style="color:var(--accent)">' + s + 'h</div></div>' +
     '<div class="metric"><div class="metric-label">WE utilis\u00e9s</div><div class="metric-val">' + weC + ' / 4</div></div>' +
@@ -919,7 +920,6 @@ function renderConv() {
     card.innerHTML =
       '<div><div class="card-title">' + labels[c.type] + '</div><div class="card-sub">' + new Date(c.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) + ' \u2014 ' + det + '</div></div>' +
       '<div class="card-val">' + c.hours + 'h</div>' +
-      '<div class="badge badge-' + c.status + '">' + (c.status==='planned'?'Planifi\u00e9':'R\u00e9alis\u00e9') + '</div>' +
       '<button class="btn-edit" onclick="editConv(' + i + ')">Modifier</button>';
     list.appendChild(card);
   });
@@ -934,7 +934,6 @@ function editConv(i) {
   if (c.type==='babysitting') document.getElementById('conv-baby-hours').value = c.hours;
   document.getElementById('conv-date').value = c.date;
   document.getElementById('conv-note').value = c.note || '';
-  document.getElementById('conv-statut').value = c.status;
   document.getElementById('conv-modal-btns').innerHTML =
     '<button class="danger" onclick="deleteConv()">Supprimer</button>' +
     '<button onclick="closeModal(\'conv\')">Annuler</button>' +
@@ -954,11 +953,10 @@ function saveConv() {
   const type = document.getElementById('conv-type').value;
   const date = document.getElementById('conv-date').value;
   const note = document.getElementById('conv-note').value;
-  const status = document.getElementById('conv-statut').value;
   const hours = type==='semaine' ? 44 : type==='we' ? 22 : parseFloat(document.getElementById('conv-baby-hours').value) || 0;
   if (!date) { alert('Choisir une date'); return; }
   if (type==='babysitting' && hours<=0) { alert('Indiquer les heures r\u00e9elles'); return; }
-  const obj = { type, date, note, status, hours };
+  const obj = { type, date, note, hours };
   if (editConvIdx >= 0) { state.conversions[editConvIdx] = obj; editConvIdx = -1; }
   else { state.conversions.push(obj); }
   save();
@@ -973,7 +971,6 @@ function resetConvModal() {
   toggleBabyH();
   document.getElementById('conv-date').value = '';
   document.getElementById('conv-note').value = '';
-  document.getElementById('conv-statut').value = 'planned';
   document.getElementById('conv-modal-btns').innerHTML =
     '<button onclick="closeModal(\'conv\')">Annuler</button>' +
     '<button class="primary" onclick="saveConv()">Ajouter</button>';
